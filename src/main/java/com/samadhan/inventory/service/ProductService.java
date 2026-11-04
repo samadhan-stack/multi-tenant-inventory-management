@@ -65,7 +65,7 @@ public class ProductService {
                 request.sku(),
                 request.description(),
                 request.price(),
-                request.stockQuantity(),
+                0,
                 tenant
         );
 
@@ -122,8 +122,7 @@ public class ProductService {
                 request.name(),
                 request.sku(),
                 request.description(),
-                request.price(),
-                request.stockQuantity()
+                request.price()
         );
 
         return mapToResponse(productRepository.save(product));

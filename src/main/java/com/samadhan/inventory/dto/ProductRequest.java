@@ -15,10 +15,6 @@ public record ProductRequest(
 
         @NotNull
         @DecimalMin("0.01")
-        BigDecimal price,
-
-        @NotNull
-        @Min(0)
-        Integer stockQuantity
+        BigDecimal price
 
 ) {}

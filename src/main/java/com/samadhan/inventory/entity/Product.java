@@ -36,6 +36,9 @@ public class Product {
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
+    @Version
+    private Long version;
+
     public Product() {
     }
 
@@ -79,17 +82,32 @@ public class Product {
         return tenant;
     }
 
+    public Long getVersion() {
+        return version;
+    }
+
     public void updateDetails(
             String name,
             String sku,
             String description,
-            BigDecimal price,
-            Integer stockQuantity) {
+            BigDecimal price) {
 
         this.name = name;
         this.sku = sku;
         this.description = description;
         this.price = price;
-        this.stockQuantity = stockQuantity;
+    }
+
+    public void changeStock(int quantity) {
+
+        int updatedStock = this.stockQuantity + quantity;
+
+        if (updatedStock < 0) {
+            throw new IllegalArgumentException(
+                    "Insufficient stock available"
+            );
+        }
+
+        this.stockQuantity = updatedStock;
     }
 }
