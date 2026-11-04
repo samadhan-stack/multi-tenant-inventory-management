@@ -41,4 +41,8 @@ public class Category {
     public Tenant getTenant() {
         return tenant;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }
