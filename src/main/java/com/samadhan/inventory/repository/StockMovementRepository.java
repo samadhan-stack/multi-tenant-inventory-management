@@ -1,3 +1,4 @@
+
 package com.samadhan.inventory.repository;
 
 import com.samadhan.inventory.entity.StockMovement;
@@ -15,6 +16,11 @@ public interface StockMovementRepository
     List<StockMovement>
     findAllByProduct_IdAndTenant_IdOrderByCreatedAtDesc(
             Long productId,
+            Long tenantId
+    );
+
+    // Fetch only the latest 10 movements
+    List<StockMovement> findTop10ByTenant_IdOrderByCreatedAtDesc(
             Long tenantId
     );
 }

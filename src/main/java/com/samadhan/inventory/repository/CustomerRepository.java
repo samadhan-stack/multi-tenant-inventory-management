@@ -1,3 +1,4 @@
+
 package com.samadhan.inventory.repository;
 
 import com.samadhan.inventory.entity.Customer;
@@ -15,8 +16,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     boolean existsByEmailAndTenant_Id(String email, Long tenantId);
 
     boolean existsByEmailAndTenant_IdAndIdNot(
-            String email,
-            Long tenantId,
-            Long id
+            String email, Long tenantId, Long id
     );
+
+    long countByTenant_Id(Long tenantId);
 }
