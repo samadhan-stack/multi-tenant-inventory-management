@@ -24,6 +24,7 @@ const emptyForm = {
     sku: "",
     description: "",
     price: "",
+    categoryId: "",
 };
 
 function getErrorMessage(error) {
@@ -66,6 +67,7 @@ function getStockStatus(quantity) {
 
 function ProductModal({
                           product,
+                          categories,
                           onClose,
                           onSave,
                           saving,
@@ -77,6 +79,9 @@ function ProductModal({
                 sku: product.sku || "",
                 description: product.description || "",
                 price: String(product.price ?? ""),
+                categoryId: product.categoryId
+                    ? String(product.categoryId)
+                    : "",
             }
             : emptyForm
     );
@@ -114,6 +119,9 @@ function ProductModal({
                 sku: form.sku.trim(),
                 description: form.description.trim(),
                 price,
+                categoryId: form.categoryId
+                    ? Number(form.categoryId)
+                    : null,
             });
         } catch (err) {
             setError(getErrorMessage(err));
@@ -121,8 +129,8 @@ function ProductModal({
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-lg rounded-xl shadow-xl">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white w-full max-w-lg max-h-[calc(100dvh-2rem)] rounded-xl shadow-xl flex flex-col overflow-hidden">
 
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
                     <div>
@@ -145,7 +153,7 @@ function ProductModal({
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto min-h-0">
 
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
@@ -186,6 +194,31 @@ function ProductModal({
 
                         <p className="text-xs text-slate-400 mt-1">
                             SKU must be unique within your company.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                            Category
+                        </label>
+
+                        <select
+                            name="categoryId"
+                            value={form.categoryId}
+                            onChange={handleChange}
+                            className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        >
+                            <option value="">Uncategorized</option>
+
+                            {categories.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                    {category.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <p className="text-xs text-slate-400 mt-1">
+                            Select a category to organize this product.
                         </p>
                     </div>
 
@@ -266,7 +299,7 @@ function ProductDetailsModal({ product, onClose }) {
     );
 
     return (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 overflow-y-auto">
             <div className="bg-white w-full max-w-md rounded-xl shadow-xl">
 
                 <div className="flex items-center justify-between p-5 border-b border-slate-200">
@@ -291,6 +324,13 @@ function ProductDetailsModal({ product, onClose }) {
                         <p className="text-xs text-slate-500">SKU</p>
                         <p className="text-sm text-slate-800 mt-1">
                             {product.sku}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-xs text-slate-500">Category</p>
+                        <p className="text-sm text-slate-800 mt-1">
+                            {product.categoryName || "Uncategorized"}
                         </p>
                     </div>
 
@@ -356,13 +396,21 @@ function Products() {
     const [viewProduct, setViewProduct] = useState(null);
     const [saving, setSaving] = useState(false);
 
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState("ALL");
+
     const fetchProducts = async () => {
         try {
             setPageError("");
 
-            const response = await api.get("/products");
+            const [productResponse, categoryResponse] = await Promise.all([
+                api.get("/products"),
+                api.get("/categories"),
+            ]);
 
-            setProducts(response.data);
+            setProducts(productResponse.data);
+            setCategories(categoryResponse.data);
+
         } catch (error) {
             setPageError(getErrorMessage(error));
         } finally {
@@ -377,18 +425,25 @@ function Products() {
     const filteredProducts = useMemo(() => {
         const keyword = search.trim().toLowerCase();
 
-        if (!keyword) return products;
+        return products.filter((product) => {
 
-        return products.filter((product) =>
-            [
+            const matchesSearch = !keyword || [
                 product.name,
                 product.sku,
                 product.description,
+                product.categoryName,
             ].some((value) =>
                 String(value || "").toLowerCase().includes(keyword)
-            )
-        );
-    }, [products, search]);
+            );
+
+            const matchesCategory =
+                selectedCategory === "ALL" ||
+                String(product.categoryId || "") === selectedCategory;
+
+            return matchesSearch && matchesCategory;
+        });
+
+    }, [products, search, selectedCategory]);
 
     const totalPages = Math.max(
         1,
@@ -607,7 +662,7 @@ function Products() {
                         </p>
                     </div>
 
-                    <div className="relative w-full sm:w-72">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Search
                             size={17}
                             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -620,6 +675,23 @@ function Products() {
                             placeholder="Search name, SKU or description..."
                             className="w-full border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-blue-500"
                         />
+
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => {
+                                setSelectedCategory(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="w-full sm:w-52 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                        >
+                            <option value="ALL">All Categories</option>
+
+                            {categories.map((category) => (
+                                <option key={category.id} value={String(category.id)}>
+                                    {category.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
@@ -672,6 +744,7 @@ function Products() {
                                 <tr>
                                     <th className="px-5 py-3">Product</th>
                                     <th className="px-5 py-3">SKU</th>
+                                    <th className="px-5 py-3">Category</th>
                                     <th className="px-5 py-3">Price</th>
                                     <th className="px-5 py-3">Quantity</th>
                                     <th className="px-5 py-3">Status</th>
@@ -702,6 +775,14 @@ function Products() {
 
                                             <td className="px-5 py-4 text-slate-600">
                                                 {product.sku}
+                                            </td>
+
+                                            <td className="px-5 py-4 text-slate-600">
+                                                {product.categoryName || (
+                                                    <span className="text-slate-400 italic">
+                                                        Uncategorized
+                                                    </span>
+                                                )}
                                             </td>
 
                                             <td className="px-5 py-4 font-medium text-slate-800">
@@ -801,6 +882,7 @@ function Products() {
             {showForm && (
                 <ProductModal
                     product={selectedProduct}
+                    categories={categories}
                     onClose={closeForm}
                     onSave={handleSave}
                     saving={saving}

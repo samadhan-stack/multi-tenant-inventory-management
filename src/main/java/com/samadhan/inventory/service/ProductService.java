@@ -2,11 +2,11 @@ package com.samadhan.inventory.service;
 
 import com.samadhan.inventory.dto.ProductRequest;
 import com.samadhan.inventory.dto.ProductResponse;
-
+import com.samadhan.inventory.entity.Category;
 import com.samadhan.inventory.entity.Product;
 import com.samadhan.inventory.entity.Tenant;
 import com.samadhan.inventory.entity.User;
-
+import com.samadhan.inventory.repository.CategoryRepository;
 import com.samadhan.inventory.repository.ProductRepository;
 import com.samadhan.inventory.repository.TenantRepository;
 
@@ -20,13 +20,16 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final TenantRepository tenantRepository;
+    private final CategoryRepository categoryRepository;
 
     public ProductService(
             ProductRepository productRepository,
-            TenantRepository tenantRepository) {
+            TenantRepository tenantRepository,
+            CategoryRepository categoryRepository) {
 
         this.productRepository = productRepository;
         this.tenantRepository = tenantRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     private ProductResponse mapToResponse(Product product) {
@@ -37,8 +40,27 @@ public class ProductService {
                 product.getSku(),
                 product.getDescription(),
                 product.getPrice(),
-                product.getStockQuantity()
+                product.getStockQuantity(),
+                product.getCategory() != null
+                        ? product.getCategory().getId() : null,
+                product.getCategory() != null
+                        ? product.getCategory().getName() : null
         );
+    }
+
+    private Category findCategory(Long categoryId, Long tenantId) {
+
+        if (categoryId == null) {
+            return null;
+        }
+
+        return categoryRepository
+                .findByIdAndTenant_Id(categoryId, tenantId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Category not found"
+                        )
+                );
     }
 
     @Transactional
@@ -60,6 +82,10 @@ public class ProductService {
                         new IllegalArgumentException("Tenant not found")
                 );
 
+        Category category = findCategory(
+                request.categoryId(), tenantId
+        );
+
         Product product = new Product(
                 request.name(),
                 request.sku(),
@@ -68,6 +94,8 @@ public class ProductService {
                 0,
                 tenant
         );
+
+        product.setCategory(category);
 
         return mapToResponse(productRepository.save(product));
     }
@@ -118,12 +146,18 @@ public class ProductService {
             );
         }
 
+        Category category = findCategory(
+                request.categoryId(), tenantId
+        );
+
         product.updateDetails(
                 request.name(),
                 request.sku(),
                 request.description(),
                 request.price()
         );
+
+        product.setCategory(category);
 
         return mapToResponse(productRepository.save(product));
     }

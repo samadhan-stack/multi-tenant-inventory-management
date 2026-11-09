@@ -39,6 +39,10 @@ public class Product {
     @Version
     private Long version;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
     public Product() {
     }
 
@@ -84,6 +88,14 @@ public class Product {
 
     public Long getVersion() {
         return version;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     public void updateDetails(

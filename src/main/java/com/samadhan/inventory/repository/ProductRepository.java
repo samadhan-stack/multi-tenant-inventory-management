@@ -44,4 +44,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     BigDecimal calculateInventoryValue(
             @Param("tenantId") Long tenantId
     );
+
+    boolean existsByCategory_IdAndTenant_Id(Long categoryId, Long tenantId);
 }

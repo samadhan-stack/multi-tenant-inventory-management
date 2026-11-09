@@ -9,6 +9,7 @@ import com.samadhan.inventory.repository.CategoryRepository;
 import com.samadhan.inventory.repository.TenantRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import com.samadhan.inventory.repository.ProductRepository;
 
 import java.util.List;
 
@@ -17,13 +18,16 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final TenantRepository tenantRepository;
+    private final ProductRepository productRepository;
 
     public CategoryService(
             CategoryRepository categoryRepository,
-            TenantRepository tenantRepository
+            TenantRepository tenantRepository,
+            ProductRepository productRepository
     ) {
         this.categoryRepository = categoryRepository;
         this.tenantRepository = tenantRepository;
+        this.productRepository = productRepository;
     }
 
     @Transactional
@@ -86,7 +90,18 @@ public class CategoryService {
 
         Category category = categoryRepository
                 .findByIdAndTenant_Id(categoryId, tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Category not found")
+                );
+
+        if (productRepository.existsByCategory_IdAndTenant_Id(
+                categoryId, tenantId)) {
+
+            throw new IllegalArgumentException(
+                    "Cannot delete this category because products are assigned to it. "
+                            + "Please reassign those products first."
+            );
+        }
 
         categoryRepository.delete(category);
     }
