@@ -106,6 +106,12 @@ public class SecurityConfig {
 
                 .csrf(csrf -> csrf.disable())
 
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/health").permitAll()
+                        .anyRequest().authenticated()
+                )
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
@@ -113,15 +119,6 @@ public class SecurityConfig {
                 )
 
                 .authenticationProvider(authenticationProvider())
-
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/api/health"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
 
                 .addFilterBefore(
                         jwtAuthFilter,

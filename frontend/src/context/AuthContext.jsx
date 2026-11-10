@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState } from "react";
 import api from "../services/api";
 
@@ -14,28 +13,40 @@ export function AuthProvider({ children }) {
         () => localStorage.getItem("accessToken")
     );
 
-    const login = async (email, password) => {
-        const response = await api.post("/auth/login", {
-            email,
-            password,
-        });
-
-        const data = response.data;
-
-        localStorage.setItem("accessToken", data.accessToken);
-
+    const saveAuthData = (data) => {
         const userData = {
             email: data.email,
             role: data.role,
             tenantId: data.tenantId,
         };
 
+        localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("user", JSON.stringify(userData));
 
         setToken(data.accessToken);
         setUser(userData);
 
         return userData;
+    };
+
+    const login = async (email, password) => {
+        const response = await api.post("/auth/login", {
+            email,
+            password,
+        });
+
+        return saveAuthData(response.data);
+    };
+
+    const register = async (companyName, fullName, email, password) => {
+        const response = await api.post("/auth/register", {
+            companyName,
+            fullName,
+            email,
+            password,
+        });
+
+        return saveAuthData(response.data);
     };
 
     const logout = () => {
@@ -54,6 +65,7 @@ export function AuthProvider({ children }) {
                 user,
                 token,
                 login,
+                register,
                 logout,
                 isAuthenticated,
             }}

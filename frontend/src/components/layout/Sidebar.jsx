@@ -12,6 +12,7 @@ import {
     Boxes,
     X
 } from 'lucide-react'
+import { useAuth } from "../../context/AuthContext";
 
 const navigation = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -22,9 +23,13 @@ const navigation = [
     { name: 'Purchase Orders', path: '/purchase-orders', icon: ShoppingCart },
     { name: 'Sales Orders', path: '/sales-orders', icon: Receipt },
     { name: 'Inventory', path: '/inventory', icon: Warehouse },
+    { name: 'Users', path: '/users', icon: Users, adminOnly: true },
 ]
 
 function Sidebar({ isOpen, onClose }) {
+
+    const { user } = useAuth();
+
     return (
         <>
             {isOpen && (
@@ -72,6 +77,10 @@ function Sidebar({ isOpen, onClose }) {
                 <nav className="flex-1 space-y-1 overflow-y-auto px-3">
                     {navigation.map((item) => {
                         const Icon = item.icon
+
+                        if (item.adminOnly && user?.role !== "ADMIN") {
+                            return null;
+                        }
 
                         return (
                             <NavLink

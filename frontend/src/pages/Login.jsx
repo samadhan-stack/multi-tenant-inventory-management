@@ -1,8 +1,8 @@
 
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
 import { Package, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 function Login() {
     const { login, isAuthenticated } = useAuth();
@@ -134,6 +134,16 @@ function Login() {
                         </button>
 
                     </form>
+
+                    <p className="text-center text-sm text-slate-500 mt-6">
+                        New to Inventory ERP?{" "}
+                        <Link
+                            to="/register"
+                            className="text-blue-600 font-medium hover:text-blue-700"
+                        >
+                            Create company account
+                        </Link>
+                    </p>
                 </div>
 
                 <p className="text-center text-xs text-slate-400 mt-6">

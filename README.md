@@ -1,88 +1,90 @@
 # Multi-Tenant Inventory & Order Management System
 
-A full-stack ERP-style inventory and order management application built with Java, Spring Boot, React, and MariaDB. The system allows multiple companies to manage their products, inventory, suppliers, customers, purchase orders, and sales orders through a shared application with tenant-level data isolation.
+A full-stack inventory and order management application built with **Java, Spring Boot, React, and MariaDB**. The system allows multiple companies to manage their products, inventory, suppliers, customers, purchase orders, and sales orders through a shared application with tenant-level data isolation.
 
 ## Features
 
-### Authentication & Authorization
-- Company registration and tenant creation
-- JWT-based authentication
-- BCrypt password hashing
-- Role-based access control (ADMIN, MANAGER, STAFF)
-- Protected REST APIs
-- Tenant-level data isolation
+### Authentication & User Management
+- Company registration and automatic tenant creation.
+- JWT-based authentication.
+- Secure password hashing using BCrypt.
+- Role-based access control (ADMIN, MANAGER, STAFF).
+- Admin-managed employee accounts.
+- Employee role management and account activation/deactivation.
+- Disabled users cannot authenticate using existing JWT tokens.
 
-### Product & Category Management
-- Create, view, update, and delete products
-- Tenant-specific SKU uniqueness
-- Product-to-category association
-- Category filtering and management
-- Optional product categories
-- Prevent deletion of categories assigned to products
-- Stock quantity managed separately from product details
+### Multi-Tenant Architecture
+- Multiple companies supported within a shared application.
+- Tenant-specific data isolation.
+- Tenant ownership enforced through authenticated user context.
+- Tenant-scoped database queries.
+- Unique product SKUs within each tenant.
 
-### Supplier & Customer Management
-- Supplier CRUD operations
-- Customer CRUD operations
-- Tenant-scoped records
-- Duplicate email validation
+### Product & Master Data Management
+- Product CRUD operations.
+- Category management.
+- Product-category association.
+- Supplier management.
+- Customer management.
+- Search, filtering, and pagination in the frontend.
 
 ### Inventory Management
-- Stock In and Stock Out operations
-- Product-wise stock movement history
-- Recent stock movement tracking
-- Low-stock and out-of-stock identification
-- Stock validation to prevent negative inventory
+- Manual stock-in and stock-out operations.
+- Stock movement history.
+- Stock movement reasons and timestamps.
+- Insufficient stock validation.
+- Optimistic locking for concurrent inventory updates.
 
 ### Purchase Order Management
-- Create purchase orders with multiple products
-- Confirm purchase orders
-- Receive purchase orders
-- Automatically increase product stock upon receiving
-- Generate STOCK_IN movements
-- Cancel eligible purchase orders
-- Prevent duplicate receiving
+- Create and manage purchase orders.
+- Purchase order lifecycle:
+    - DRAFT
+    - CONFIRMED
+    - RECEIVED
+    - CANCELLED
+- Automatic inventory increase when a purchase order is received.
+- Automatic stock movement history generation.
+- Prevention of duplicate order receiving.
 
 ### Sales Order Management
-- Create sales orders with multiple products
-- Confirm sales orders
-- Dispatch sales orders
-- Automatically deduct stock upon dispatch
-- Generate STOCK_OUT movements
-- Cancel eligible sales orders
-- Prevent duplicate dispatch
+- Create and manage sales orders.
+- Sales order lifecycle:
+    - DRAFT
+    - CONFIRMED
+    - DISPATCHED
+    - CANCELLED
+- Inventory deduction during dispatch.
+- Automatic stock-out movement generation.
+- Stock availability validation.
+- Prevention of duplicate order dispatch.
 
-### Dashboard & Analytics
-- Total products, customers, and suppliers
-- Inventory valuation
-- Low-stock and out-of-stock product counts
-- Sales and purchase order statistics
-- Completed sales and purchase amounts
-- Recent stock movements
+### Dashboard
+- Total products, customers, and suppliers.
+- Total inventory valuation.
+- Low-stock and out-of-stock indicators.
+- Purchase and sales order statistics.
+- Recent stock movement activity.
 
 ### Frontend
-- React-based ERP dashboard
-- Responsive application layout
-- Product, category, supplier, and customer management
-- Purchase and sales order workflows
-- Inventory management interface
-- Search, filtering, and pagination
-- Role-aware UI actions
-- Form validation and error handling
+- React-based responsive ERP interface.
+- Role-aware navigation and actions.
+- Protected routes.
+- Dashboard and data management pages.
+- Forms, tables, search, and status indicators.
 
-## Tech Stack
+## Technology Stack
 
 ### Backend
 - Java 21
 - Spring Boot
 - Spring Security
-- Spring Data JPA / Hibernate
-- JWT Authentication (JJWT)
-- BCrypt
-- MariaDB
+- Spring Data JPA
+- Hibernate
+- JWT (JJWT)
 - Maven
-- REST APIs
-- JUnit 5 and Mockito
+- Bean Validation
+- JUnit 5
+- Mockito
 
 ### Frontend
 - React
@@ -93,215 +95,92 @@ A full-stack ERP-style inventory and order management application built with Jav
 - Lucide React
 - Recharts
 
+### Database
+- MariaDB
+
+### Development Tools
+- IntelliJ IDEA
+- Visual Studio Code
+- Postman
+- Git & GitHub
+- XAMPP / MariaDB
+
 ## Architecture
 
-The application currently follows a **Modular Monolith Architecture**.
+The application follows a modular monolithic architecture with a layered backend structure.
 
 ```text
-                 React Frontend
-                 (Vite + Tailwind)
-                        |
-                        | REST API
-                        |
-                 Spring Boot Backend
-                        |
-          +-------------+-------------+
-          |             |             |
-      Controller     Service      Security
-          |             |
-          +-------------+
-                        |
-                   Repository
-                        |
-                     JPA
-                        |
-                    MariaDB
+                    React Frontend
+                          |
+                       Axios
+                          |
+                    REST API Layer
+                          |
+                 Spring Security + JWT
+                          |
+                    Controllers
+                          |
+                      Services
+                          |
+                    Repositories
+                          |
+                    Spring Data JPA
+                          |
+                       MariaDB
 ```
 
-### Multi-Tenant Strategy
+### Multi-Tenant Data Isolation
 
-The application uses a shared database and shared application infrastructure.
+The application uses a shared database approach.
 
-- Each company is represented by a Tenant.
-- Tenant-owned records are associated with a tenant ID.
-- Repository queries are tenant-scoped.
-- The authenticated user's tenant ID determines data access.
-- Client-provided tenant IDs are not trusted for tenant isolation.
+Each company is represented by a tenant, and tenant-owned records are associated with a tenant ID.
 
-### User Roles
-
-| Role | Permissions |
-|---|---|
-| ADMIN | Full access, including deletion and management |
-| MANAGER | Manage products, categories, suppliers, customers, orders, and stock |
-| STAFF | View permitted business and inventory information |
+The authenticated user's tenant context determines which records can be accessed. Tenant IDs are not trusted from client requests for data ownership.
 
 ## Project Structure
 
 ```text
 inventory-management/
-|
-+-- src/
-|   +-- main/
-|   |   +-- java/com/samadhan/inventory/
-|   |   |   +-- config/
-|   |   |   +-- controller/
-|   |   |   +-- dto/
-|   |   |   +-- entity/
-|   |   |   +-- exception/
-|   |   |   +-- repository/
-|   |   |   +-- security/
-|   |   |   +-- service/
-|   |   |
-|   |   +-- resources/
-|   |       +-- application.properties
-|   |
-|   +-- test/
-|
-+-- frontend/
-|   +-- src/
-|       +-- components/
-|       +-- context/
-|       +-- layouts/
-|       +-- pages/
-|       +-- services/
-|
-+-- pom.xml
-+-- README.md
+│
+├── src/
+│   ├── main/
+│   │   ├── java/com/samadhan/inventory/
+│   │   │   ├── config/
+│   │   │   ├── controller/
+│   │   │   ├── dto/
+│   │   │   ├── entity/
+│   │   │   ├── exception/
+│   │   │   ├── repository/
+│   │   │   ├── security/
+│   │   │   └── service/
+│   │   │
+│   │   └── resources/
+│   │       └── application.properties
+│   │
+│   └── test/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   └── services/
+│   ├── package.json
+│   └── vite.config.js
+│
+├── pom.xml
+└── README.md
 ```
 
-## API Endpoints
-
-Base URL: `http://localhost:8080/api`
-
-All endpoints except authentication and health checks require a valid JWT unless otherwise configured.
-
-### Authentication
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/auth/register` | Register company and admin |
-| POST | `/auth/login` | Authenticate user |
-
-### Dashboard
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/dashboard` | Retrieve dashboard analytics |
-
-### Products
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/products` | Create product |
-| GET | `/products` | Get tenant products |
-| GET | `/products/{id}` | Get product details |
-| PUT | `/products/{id}` | Update product |
-| DELETE | `/products/{id}` | Delete product |
-
-### Categories
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/categories` | Create category |
-| GET | `/categories` | Get categories |
-| PUT | `/categories/{id}` | Update category |
-| DELETE | `/categories/{id}` | Delete category |
-
-### Suppliers
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/suppliers` | Create supplier |
-| GET | `/suppliers` | Get suppliers |
-| PUT | `/suppliers/{id}` | Update supplier |
-| DELETE | `/suppliers/{id}` | Delete supplier |
-
-### Customers
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/customers` | Create customer |
-| GET | `/customers` | Get customers |
-| PUT | `/customers/{id}` | Update customer |
-| DELETE | `/customers/{id}` | Delete customer |
-
-### Inventory & Stock Movements
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/products/{productId}/stock-movements` | Record stock movement |
-| GET | `/stock-movements` | Get tenant stock movements |
-| GET | `/products/{productId}/stock-movements` | Get product movement history |
-
-### Purchase Orders
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/purchase-orders` | Create purchase order |
-| GET | `/purchase-orders` | Get purchase orders |
-| GET | `/purchase-orders/{id}` | Get purchase order details |
-| PATCH | `/purchase-orders/{id}/confirm` | Confirm purchase order |
-| PATCH | `/purchase-orders/{id}/receive` | Receive purchase order |
-| PATCH | `/purchase-orders/{id}/cancel` | Cancel purchase order |
-
-### Sales Orders
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/sales-orders` | Create sales order |
-| GET | `/sales-orders` | Get sales orders |
-| GET | `/sales-orders/{id}` | Get sales order details |
-| PATCH | `/sales-orders/{id}/confirm` | Confirm sales order |
-| PATCH | `/sales-orders/{id}/dispatch` | Dispatch sales order |
-| PATCH | `/sales-orders/{id}/cancel` | Cancel sales order |
-
-### Health Check
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/health` | Application health check |
-
-## Business Workflows
-
-### Purchase Order Workflow
-
-```text
-DRAFT
-  |
-  v
-CONFIRMED
-  |
-  v
-RECEIVED
-```
-
-- Stock increases only when a purchase order is received.
-- Receiving creates STOCK_IN movement records.
-- Eligible orders can be cancelled before receiving.
-
-### Sales Order Workflow
-
-```text
-DRAFT
-  |
-  v
-CONFIRMED
-  |
-  v
-DISPATCHED
-```
-
-- Stock is deducted only when a sales order is dispatched.
-- Dispatch creates STOCK_OUT movement records.
-- Eligible orders can be cancelled before dispatch.
-
-## Local Setup
+## Getting Started
 
 ### Prerequisites
 
-- Java 21
-- Maven
+Install the following:
+
+- Java 21 or later
+- Maven (or use the included Maven Wrapper)
 - Node.js and npm
 - MariaDB
 
@@ -313,37 +192,44 @@ git clone https://github.com/samadhan-stack/multi-tenant-inventory-management.gi
 cd multi-tenant-inventory-management
 ```
 
-### 2. Create the Database
+### 2. Configure MariaDB
 
-Create a MariaDB database:
+Create the database:
 
 ```sql
 CREATE DATABASE inventory_management;
 ```
 
-Configure a database user with appropriate privileges.
+Create a database user and grant access:
+
+```sql
+CREATE USER 'inventory_user'@'localhost'
+IDENTIFIED BY 'your_database_password';
+
+GRANT ALL PRIVILEGES ON inventory_management.*
+TO 'inventory_user'@'localhost';
+
+FLUSH PRIVILEGES;
+```
 
 ### 3. Configure Environment Variables
 
-The backend uses the following environment variables:
-
-| Variable | Description |
-|---|---|
-| `DB_URL` | MariaDB JDBC URL (optional; has a default) |
-| `DB_USERNAME` | Database username |
-| `DB_PASSWORD` | Database password |
-| `JWT_SECRET` | Secret key used for JWT signing |
-
-Example for Linux:
+Configure the following environment variables before starting the backend:
 
 ```bash
 export DB_URL="jdbc:mariadb://localhost:3306/inventory_management"
 export DB_USERNAME="inventory_user"
 export DB_PASSWORD="your_database_password"
-export JWT_SECRET="your_secure_jwt_secret"
+export JWT_SECRET="your_generated_jwt_secret"
 ```
 
-Keep your actual credentials private. Never commit secrets to GitHub.
+Generate a JWT secret using:
+
+```bash
+openssl rand -base64 32
+```
+
+Keep database credentials and JWT secrets private. Never commit them to GitHub.
 
 ### 4. Run the Backend
 
@@ -353,7 +239,7 @@ From the project root:
 ./mvnw spring-boot:run
 ```
 
-Backend URL:
+The backend will start at:
 
 ```text
 http://localhost:8080
@@ -365,61 +251,112 @@ Open another terminal:
 
 ```bash
 cd frontend
-
 npm install
-
 npm run dev
 ```
 
-Vite will display the local development URL, usually:
+The frontend will be available at:
 
 ```text
 http://localhost:5173
 ```
 
-The frontend API service uses `http://localhost:8080/api` by default. You can override it using `VITE_API_BASE_URL`.
+If required, configure the frontend API base URL in `frontend/.env`:
 
-## Running Tests
-
-Run backend tests from the project root:
-
-```bash
-mvn clean test
+```env
+VITE_API_BASE_URL=http://localhost:8080/api
 ```
 
-The backend includes JUnit 5 and Mockito-based service tests.
+## API Endpoints
 
-## Production Frontend Build
+All protected endpoints require a valid JWT Bearer token.
 
-From the frontend directory:
+### Authentication
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Register a company |
+| POST | `/api/auth/login` | Authenticate user |
+| GET | `/api/health` | Health check |
+
+### User Management (ADMIN)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/users` | Create employee |
+| GET | `/api/users` | List tenant employees |
+| PATCH | `/api/users/{id}/role` | Update employee role |
+| PATCH | `/api/users/{id}/status` | Activate/deactivate employee |
+
+### Core Resources
+
+| Resource | Endpoint |
+|---|---|
+| Products | `/api/products` |
+| Categories | `/api/categories` |
+| Suppliers | `/api/suppliers` |
+| Customers | `/api/customers` |
+| Inventory | `/api/stock-movements` |
+| Dashboard | `/api/dashboard` |
+| Purchase Orders | `/api/purchase-orders` |
+| Sales Orders | `/api/sales-orders` |
+
+### Stock Movements
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/products/{id}/stock-movements` | Record stock movement |
+| GET | `/api/products/{id}/stock-movements` | Product movement history |
+| GET | `/api/stock-movements` | Tenant movement history |
+
+Purchase and sales order lifecycle actions are exposed through their respective order-specific endpoints.
+
+## Role-Based Access Control
+
+| Feature | ADMIN | MANAGER | STAFF |
+|---|:---:|:---:|:---:|
+| View dashboard | ✓ | ✓ | ✓ |
+| View products | ✓ | ✓ | ✓ |
+| Create/update products | ✓ | ✓ | ✗ |
+| Delete products | ✓ | ✗ | ✗ |
+| Manage categories | ✓ | ✓ | ✗ |
+| Manage suppliers/customers | ✓ | ✓ | ✗ |
+| Manage inventory | ✓ | ✓ | View |
+| Manage purchase/sales orders | ✓ | ✓ | View |
+| Manage employees | ✓ | ✗ | ✗ |
+
+## Testing
+
+The project includes backend unit tests using JUnit 5 and Mockito.
+
+The implemented workflows have also been tested using Postman, including:
+
+- Authentication and authorization.
+- Tenant data isolation.
+- Product and master data operations.
+- Stock movements and insufficient stock validation.
+- Purchase and sales order workflows.
+- Employee creation and role management.
+- Employee activation and deactivation.
+- Rejection of disabled users' existing JWT tokens.
+
+Frontend production build verification:
 
 ```bash
+cd frontend
 npm run build
 ```
 
-The production build is generated in:
+## Future Enhancements
 
-```text
-frontend/dist/
-```
-
-## Current Project Status
-
-**Core backend and frontend modules implemented.**
-
-The application currently supports tenant-aware authentication, product and category management, supplier and customer management, purchase and sales order workflows, inventory operations, and dashboard analytics.
-
-### Planned Improvements
-
-- Docker and Docker Compose
-- CI/CD using GitHub Actions
-- Database schema versioning with Flyway
-- Integration testing with Testcontainers
-- Frontend code splitting and performance optimization
-- Audit logging
-- Redis caching
-- Kafka-based event processing
-- Cloud deployment
+- Docker and Docker Compose.
+- Redis caching.
+- Kafka-based event processing.
+- Flyway database migrations.
+- Automated integration testing with Testcontainers.
+- CI/CD using GitHub Actions.
+- Cloud deployment.
+- Advanced reporting and analytics.
 
 ## Author
 
@@ -429,4 +366,4 @@ GitHub: [@samadhan-stack](https://github.com/samadhan-stack)
 
 ---
 
-Built as a practical full-stack project to explore enterprise application development, multi-tenancy, inventory workflows, and scalable backend architecture.
+*Built as a full-stack software engineering project to explore multi-tenant architecture, backend security, inventory workflows, and modern frontend development.*

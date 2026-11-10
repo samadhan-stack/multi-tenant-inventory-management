@@ -15,6 +15,8 @@ import Suppliers from "./pages/Suppliers";
 import PurchaseOrders from "./pages/PurchaseOrders";
 import SalesOrders from "./pages/SalesOrders";
 import Inventory from "./pages/Inventory";
+import Register from "./pages/Register";
+import Users from "./pages/Users";
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
           <Routes>
 
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
@@ -34,6 +37,7 @@ function App() {
                 <Route path="/purchase-orders" element={<PurchaseOrders />} />
                 <Route path="/sales-orders" element={<SalesOrders />} />
                 <Route path="/inventory" element={<Inventory />} />
+                <Route path="/users" element={<Users />} />
               </Route>
             </Route>
 

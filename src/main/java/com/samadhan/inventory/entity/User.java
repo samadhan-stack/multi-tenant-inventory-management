@@ -33,6 +33,9 @@ public class User implements UserDetails {
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     public User() {
     }
 
@@ -43,6 +46,7 @@ public class User implements UserDetails {
         this.password = password;
         this.role = role;
         this.tenant = tenant;
+        this.active = true;
     }
 
     public Long getId() {
@@ -65,6 +69,18 @@ public class User implements UserDetails {
         return tenant;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(
@@ -80,5 +96,10 @@ public class User implements UserDetails {
     @Override
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return active;
     }
 }
